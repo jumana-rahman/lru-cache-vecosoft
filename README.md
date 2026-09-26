@@ -1,117 +1,222 @@
-# LRU Cache
+# 🧠 LRU Cache
 
-## Project Overview
+A simple **Least Recently Used (LRU) Cache** implementation using **JavaScript and Node.js**.
 
-An LRU (Least Recently Used) cache stores a fixed number of entries and discards
-the entry that has gone unused the longest when a new entry needs room. It gives
-a cheap way to keep frequently accessed data in memory while slower, colder data
-gets dropped.
+The cache stores a fixed number of key-value pairs. When the cache reaches its capacity and a new entry needs to be added, the **least recently used** entry is removed.
 
-This implementation supports `get(key)` and `put(key, value)`, both in O(1)
-average time, using only plain JavaScript and Node.js.
+The implementation supports:
 
-## Data Structures
+* `get(key)`
+* `put(key, value)`
 
-### Map
+Both operations run in **O(1) average time**.
 
-A `Map` maps each key to its linked list node, so a key can be found in O(1)
-average time without searching the list.
+### 🛠️ Tech Stack
+
+* 🟨 JavaScript
+* 🟢 Node.js
+* 🧪 Node.js built-in test runner
+* 🚫 No external runtime dependencies
+
+### 📦 Data Structures
+
+The implementation uses two data structures together:
+
+#### `Map`
+
+A JavaScript `Map` stores each key and its corresponding linked-list node.
 
 ```text
-"A" -> Node("A", 10)
-"B" -> Node("B", 20)
+"A" → Node("A", 10)
+"B" → Node("B", 20)
 ```
 
-### Doubly Linked List
+This allows the cache to find a key in **O(1) average time**.
 
-A custom doubly linked list maintains usage order. Each node holds `prev` and
-`next` references, which means a node can be detached or moved to the front
-without traversing anything.
+#### Doubly Linked List
+
+A custom doubly linked list maintains the order of recently used entries.
 
 ```text
 HEAD <-> A <-> B <-> C <-> TAIL
 ```
 
-`HEAD` and `TAIL` are dummy sentinel nodes. They remove the edge cases around
-inserting at the front and removing at the back.
+The list uses two dummy sentinel nodes:
 
-## How LRU Ordering Works
+* `HEAD` — beginning of the list
+* `TAIL` — end of the list
 
-```text
-HEAD -> Most Recently Used -> ... -> Least Recently Used <- TAIL
-```
+The entry closest to `HEAD` is the **Most Recently Used (MRU)** entry.
 
-The most recently used entry sits just after `HEAD`. The least recently used
-entry sits just before `TAIL`.
+The entry closest to `TAIL` is the **Least Recently Used (LRU)** entry.
 
-**After a successful `get()`** the node is unlinked from its current position and
-re-inserted at the front, making it the most recently used entry. A `get()` on a
-missing key returns `-1` and leaves the order untouched.
-
-**After `put()`** an existing key has its value updated in place and is moved to
-the front, so no duplicate node is created. A new key is inserted at the front and
-added to the `Map`. If the `Map` then holds more entries than the capacity, the
-node before `TAIL` is unlinked and its key is deleted from the `Map`.
-
-**Eviction** therefore always removes the entry nearest `TAIL`, which is the one
-that has gone unused the longest.
-
-## Complexity
+### 🔄 How LRU Ordering Works
 
 ```text
-get()      O(1) average
-put()      O(1) average
-Space      O(capacity)
+HEAD → Most Recently Used → ... → Least Recently Used ← TAIL
 ```
 
-`get()` performs one `Map` lookup, one unlink and one insert at the front.
-`put()` performs at most one `Map` lookup, one insert and one eviction. Every
-step touches a fixed number of nodes, so neither operation walks the cache. Each
-key holds exactly one node, so memory is bounded by the capacity.
+#### `get(key)`
 
-`keys()` is the only method that walks the list. It exists for tests and the
-example output, and is not part of the `get()`/`put()` path.
+When the key exists:
 
-## Installation
+1. The value is returned.
+2. The node is removed from its current position.
+3. The node is moved to the front.
+4. It becomes the most recently used entry.
 
-There are no dependencies, so there is nothing to install. Node.js 18 or newer
-is required for the built-in test runner.
+When the key does not exist:
+
+```text
+get(key) → -1
+```
+
+The cache order remains unchanged.
+
+#### `put(key, value)`
+
+When the key does not exist:
+
+1. A new node is created.
+2. It is added to the front of the list.
+3. The key and node are stored in the `Map`.
+4. If the cache exceeds its capacity, the least recently used node is removed.
+
+When the key already exists:
+
+1. Its value is updated.
+2. The existing node is moved to the front.
+3. No duplicate node is created.
+
+### 🗑️ Eviction
+
+When the cache exceeds its capacity, the node immediately before `TAIL` is removed.
+
+For example:
+
+```text
+Capacity = 2
+
+HEAD → B → A → TAIL
+        ↑    ↑
+       MRU  LRU
+```
+
+If `C` is added:
+
+```text
+HEAD → C → B → TAIL
+```
+
+`A` is removed because it was the least recently used entry.
+
+### ✅ Supported Behavior
+
+The implementation supports the following required behaviors:
+
+* ✅ `get(key)` returns the value for an existing key.
+* ✅ `get(key)` returns `-1` for a missing key.
+* ✅ A successful `get()` makes the key most recently used.
+* ✅ `put(key, value)` inserts a new key.
+* ✅ `put(key, value)` updates an existing key.
+* ✅ Updating a key makes it most recently used.
+* ✅ The least recently used entry is evicted when capacity is exceeded.
+* ✅ Cache capacity must be greater than `0`.
+
+### ⏱️ Complexity
+
+| Operation | Complexity   |
+| --------- | ------------ |
+| `get()`   | O(1) average |
+| `put()`   | O(1) average |
+| Space     | O(capacity)  |
+
+Both `get()` and `put()` operate on a fixed number of nodes and do not require traversing the linked list.
+
+The `keys()` helper walks through the list and is used only for testing and displaying the cache order in the example.
+
+### 📥 Installation
+
+Node.js 18 or newer is required.
+
+There are no external runtime dependencies.
+
+Install the project dependencies:
 
 ```bash
 npm install
 ```
 
-## Run Tests
+### 🧪 Run Tests
+
+Run the complete test suite with:
 
 ```bash
 npm test
 ```
 
-## Run Example
+The tests cover:
+
+* Basic `put()` and `get()`
+* Missing keys
+* Recency changes after `get()`
+* LRU eviction
+* Updating an existing key
+* Recency changes after updating a key
+* Capacity of `1`
+* Invalid capacity
+
+### ▶️ Run Example
+
+Run the example program with:
 
 ```bash
 npm run example
 ```
 
-## Example
+The example demonstrates inserting, retrieving, updating, and evicting cache entries.
 
-```js
-const { LRUCache } = require('./src/lru-cache');
+### 💡 Example Usage
+
+```javascript
+const { LRUCache } = require("./src/lru-cache");
 
 const cache = new LRUCache(2);
 
-cache.put('A', 10);
-cache.put('B', 20);
+cache.put("A", 10);
+cache.put("B", 20);
 
-cache.get('A'); // 10, and A becomes the most recently used
-cache.put('C', 30); // cache is full, so B is evicted
+cache.get("A"); // 10
+cache.put("C", 30); // B is evicted
 
-cache.get('B'); // -1
-cache.get('C'); // 30
-cache.get('A'); // 10
+cache.get("B"); // -1
+cache.get("C"); // 30
+cache.get("A"); // 10
+
 ```
 
-## Project Structure
+The sequence works as follows:
+
+```text
+PUT A=10
+Cache: [A]
+
+PUT B=20
+Cache: [B, A]
+
+GET A → 10
+Cache: [A, B]
+
+PUT C=30
+B is evicted
+Cache: [C, A]
+
+GET B → -1
+GET C → 30
+GET A → 10
+```
+
+### 📂 Project Structure
 
 ```text
 lru-cache/
@@ -121,7 +226,7 @@ lru-cache/
 │   └── lru-cache.test.js
 ├── example/
 │   └── run-example.js
-├── INSTRUCTIONS.md
 ├── package.json
 └── README.md
 ```
+
