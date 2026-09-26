@@ -1,0 +1,6 @@
+ChatGPT:
+
+1. (Pasted the instructions first then wrote the command): 
+Read the instructions and give me guides on how shall i do the task.
+
+2. Help me write the README file for this task.
