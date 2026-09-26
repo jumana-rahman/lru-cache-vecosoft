@@ -1,0 +1,14 @@
+{
+  "name": "lru-cache",
+  "version": "1.0.0",
+  "description": "Least Recently Used cache built with a Map and a custom doubly linked list",
+  "main": "src/lru-cache.js",
+  "scripts": {
+    "test": "node --test",
+    "example": "node example/run-example.js"
+  },
+  "keywords": ["lru", "cache", "data-structures"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
